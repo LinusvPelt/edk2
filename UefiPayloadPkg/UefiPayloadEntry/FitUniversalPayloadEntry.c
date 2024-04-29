@@ -36,6 +36,12 @@ PrintHob (
   IN CONST VOID  *HobStart
   );
 
+VOID
+EFIAPI
+ProcessLibraryConstructorList (
+  VOID
+  );
+
 /**
   Find the first substring.
   @param  String    Point to the string where to find the substring.
