@@ -11,7 +11,7 @@
 
 #include <Uefi.h>
 #include <Pi/PiMultiPhase.h>
-#include <Chipset/AArch64.h>
+#include <AArch64/AArch64.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/CacheMaintenanceLib.h>
 #include <Library/MemoryAllocationLib.h>
@@ -20,16 +20,9 @@
 #include <Library/BaseLib.h>
 #include <Library/DebugLib.h>
 #include <Library/HobLib.h>
+#include "ArmMmuLibInternal.h"
 
-STATIC
-VOID (
-  EFIAPI  *mReplaceLiveEntryFunc
-  )(
-    IN  UINT64  *Entry,
-    IN  UINT64  Value,
-    IN  UINT64  RegionStart,
-    IN  BOOLEAN DisableMmu
-    ) = ArmReplaceLiveTranslationEntry;
+STATIC  ARM_REPLACE_LIVE_TRANSLATION_ENTRY  mReplaceLiveEntryFunc = ArmReplaceLiveTranslationEntry;
 
 STATIC
 UINT64
@@ -389,6 +382,13 @@ UpdateRegionMapping (
   UINTN  T0SZ;
 
   if (((RegionStart | RegionLength) & EFI_PAGE_MASK) != 0) {
+    DEBUG ((
+      DEBUG_ERROR,
+      "%a RegionStart: 0x%llx or RegionLength: 0x%llx are not page aligned!\n",
+      __func__,
+      RegionStart,
+      RegionLength
+      ));
     return EFI_INVALID_PARAMETER;
   }
 
@@ -742,7 +742,7 @@ ArmMmuBaseLibConstructor (
 
   Hob = GetFirstGuidHob (&gArmMmuReplaceLiveTranslationEntryFuncGuid);
   if (Hob != NULL) {
-    mReplaceLiveEntryFunc = *(VOID **)GET_GUID_HOB_DATA (Hob);
+    mReplaceLiveEntryFunc = *(ARM_REPLACE_LIVE_TRANSLATION_ENTRY *)GET_GUID_HOB_DATA (Hob);
   } else {
     //
     // The ArmReplaceLiveTranslationEntry () helper function may be invoked

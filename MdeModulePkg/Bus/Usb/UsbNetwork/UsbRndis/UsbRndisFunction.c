@@ -123,7 +123,7 @@ GetFunctionalDescriptor (
 
   for (Offset = 0; NextDescriptor (Config, &Offset);) {
     Interface = (EFI_USB_INTERFACE_DESCRIPTOR *)((UINT8 *)Config + Offset);
-    if (Interface->DescriptorType == CS_INTERFACE) {
+    if (Interface->DescriptorType == USB_DESC_TYPE_CS_INTERFACE) {
       if (((USB_HEADER_FUN_DESCRIPTOR *)Interface)->DescriptorSubtype == FunDescriptorType) {
         switch (FunDescriptorType) {
           case HEADER_FUN_DESCRIPTOR:
@@ -661,7 +661,7 @@ SetUsbRndisMcastFilter (
     return Status;
   }
 
-  if ((UsbEthFunDescriptor.NumberMcFilters << 1) == 0) {
+  if ((UsbEthFunDescriptor.NumberMcFilters & MAC_FILTERS_MASK) == 0) {
     return EFI_UNSUPPORTED;
   }
 
@@ -803,7 +803,7 @@ ConvertFilter (
 
   Count = sizeof (gTable)/sizeof (gTable[0]);
 
-  for (Index = 0; (gTable[Index].Src != 0) && (Index < Count); Index++) {
+  for (Index = 0; (Index < Count) && (gTable[Index].Src != 0); Index++) {
     if (gTable[Index].Src & Value) {
       *CdcFilter |= gTable[Index].Dst;
     }
@@ -856,7 +856,7 @@ RndisUndiReceiveFilter (
     }
 
     Nic->UsbEth->UsbEthFunDescriptor (Nic->UsbEth, &UsbEthFunDescriptor);
-    if ((UsbEthFunDescriptor.NumberMcFilters << 1) == 0) {
+    if ((UsbEthFunDescriptor.NumberMcFilters & MAC_FILTERS_MASK) == 0) {
       Nic->RxFilter |= PXE_OPFLAGS_RECEIVE_FILTER_ALL_MULTICAST;
       DEBUG ((DEBUG_INFO, "SetUsbEthPacketFilter Nic %lx Nic->UsbEth %lx ", Nic, Nic->UsbEth));
       Nic->UsbEth->SetUsbEthPacketFilter (Nic->UsbEth, Nic->RxFilter);
